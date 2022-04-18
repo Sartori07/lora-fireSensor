@@ -3,7 +3,7 @@
 #include "DHTesp.h"
 
 #define BAND    915E6  //Escolha a frequência
-const int pinoSensor = 16; //PINO DIGITAL UTILIZADO PELO SENSOR
+const int pinoSensor = 2; //PINO DIGITAL UTILIZADO PELO SENSOR
 DHTesp dht;
 
 String packet ;
@@ -25,11 +25,8 @@ void getTemp()
  
   if (temperature != currentTemp) { //Verifica se houve mudança na temperatura
     currentTemp = temperature;
-    digitalWrite(LED, HIGH);   // Liga o LED
-    delay(500);                // Espera 500 milissegundos
-    digitalWrite(LED, LOW);    // Desliiga o LED
-    delay(500);                // Espera 500 milissegundos
   }
+  currentTemp = currentTemp*9.8;
   delay(1000);
 }
 
@@ -49,9 +46,8 @@ void sendPacket()
 /******************* função principal (setup) *********************/
 void setup()
 {
-  pinMode(LED,OUTPUT); //inicializa o LED
   pinMode(pinoSensor, INPUT); //DEFINE O PINO COMO ENTRADA
-  
+  Serial.begin(9600);
   Heltec.begin(true /*Habilita o Display*/, true /*Heltec.Heltec.Heltec.LoRa Disable*/, true /*Habilita debug Serial*/, true /*Habilita o PABOOST*/, BAND /*Frequência BAND*/);
  
   Heltec.display->init();
@@ -76,7 +72,7 @@ void loop()
   if(digitalRead(pinoSensor) == LOW){ //SE A LEITURA DO PINO FOR IGUAL A LOW, FAZ
       gas = "Incendio!";
   }else{ //SENÃO, FAZ
-    gas = "Tudo normal";
+    gas = "Normal";
   }
   
   
@@ -84,10 +80,10 @@ void loop()
   Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
   Heltec.display->setFont(ArialMT_Plain_16);
   
-  Heltec.display->drawString(30, 5, "Enviando");
+  Heltec.display->drawString(30, 5, gas);
   Heltec.display->drawString(33, 30, (String)currentTemp);
   Heltec.display->drawString(78, 30, "°C");
   Heltec.display->display();
-
+  Serial.println(gas);
   sendPacket(); //Envia temperatura
 }
